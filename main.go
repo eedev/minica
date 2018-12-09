@@ -195,12 +195,8 @@ func sign(iss *issuer, domains []string, ipAddresses []string) (*x509.Certificat
 	} else {
 		return nil, fmt.Errorf("must specify at least one domain name or IP address")
 	}
-	var cnFolder = strings.Replace(cn, "*", "_", -1)
-	err := os.Mkdir(cnFolder, 0700)
-	if err != nil && !os.IsExist(err) {
-		return nil, err
-	}
-	key, err := makeKey(fmt.Sprintf("%s/key.pem", cnFolder))
+	var cnFile = strings.Replace(cn, "*", "_", -1)
+	key, err := makeKey(fmt.Sprintf("%s.key", cnFile))
 	if err != nil {
 		return nil, err
 	}
@@ -231,7 +227,7 @@ func sign(iss *issuer, domains []string, ipAddresses []string) (*x509.Certificat
 	if err != nil {
 		return nil, err
 	}
-	file, err := os.OpenFile(fmt.Sprintf("%s/cert.pem", cnFolder), os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
+	file, err := os.OpenFile(fmt.Sprintf("%s.crt", cnFile), os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
 	if err != nil {
 		return nil, err
 	}
@@ -274,9 +270,8 @@ unless they are deleted.
 On each run, minica will generate a new keypair and sign an end-entity (leaf)
 certificate for that keypair. The certificate will contain a list of DNS names
 and/or IP addresses from the command line flags. The key and certificate are
-placed in a new directory whose name is chosen as the first domain name from
-the certificate, or the first IP address if no domain names are present. It
-will not overwrite existing keys or certificates.
+placed in the current directory, they are named as the first domain name from
+the certificate, or the first IP address if no domain names are present.
 
 `)
 		flag.PrintDefaults()
